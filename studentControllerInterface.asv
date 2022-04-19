@@ -8,7 +8,6 @@ classdef studentControllerInterface < matlab.System
         p_prev = 0;
         v_prev = 0;
         theta_prev = 0;
-        theta_dot_prev = 0;
 
         % dt
         dt = 0.01;
@@ -40,17 +39,18 @@ classdef studentControllerInterface < matlab.System
             p_prev = obj.p_prev;
             theta_prev = obj.theta_prev;
 
-            if(t_prev >= 0 && t > t_prev)
+            if(t_prev > 0)
                 dt = t - t_prev;
                 v_ball = (p_ball - p_prev) /dt;
                 theta_dot = (theta - theta_prev)/dt;
             elseif (t_prev == t)
-                v_ball = obj.v_prev;
-                theta_dot = obj.theta_dot_prev;
+                v_ball = 
+                theta_dot = 
             else
                 v_ball = 0;
                 theta_dot = 0;
             end
+           
 
             %% Sample Controller: Simple Proportional Controller
             % Extract reference trajectory at the current timestep.
@@ -77,13 +77,18 @@ classdef studentControllerInterface < matlab.System
              obj.A = A;
              obj.omega = omega;
 
+%              fprintf("a %.3f, p %.3f ", a_ball_ref, a_ball_ref);
+%              fprintf("w %d, A %.3f, o %.3f \n", wave_pattern, A, omega);
+
             % predict reference in the horizon
             pred_ref = [];
             for i = 0:obj.H
                 t_pred = t + i*obj.dt;
                 [p_pred, v_pred, a_pred] = get_pred_traj(t_pred, wave_pattern, A, omega);
                 pred_ref = [pred_ref, [p_pred, v_pred]'];
+%                 fprintf("%.3f,  ", pred_ref(end));
             end
+%             fprintf("\n ");
 
             x = [p_ball, v_ball, theta, theta_dot]';
             ref = pred_ref;
@@ -96,14 +101,12 @@ classdef studentControllerInterface < matlab.System
             % (2) Feedback LQR
             [V_servo, theta_d] = LQR_01(x, ref, obj.dt);
 
-            % (3) MPC, todo
+            % (3) MPC 
             
             % Update class properties if necessary.
             obj.t_prev = t;
             obj.p_prev = p_ball;
-            obj.v_prev = v_ball;
             obj.theta_prev = theta;
-            obj.theta_dot_prev = theta_dot;
             obj.theta_d = theta_d;
         end
     end

@@ -1,5 +1,4 @@
-close all;
-clc;clear all;
+close
 
 setup_simulink_simulation;
 % Initial state.
