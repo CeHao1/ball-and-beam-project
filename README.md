@@ -1,3 +1,14 @@
+# how to use it
+1. Install control system toolbox
+2. test run_matlab_ball_and_beam 
+3. test run_simulink_ball_and_beam 
+4. In LQR_01, Q and R are weight matrix. We can tune the parameters.
+
+
+The matlab result and Simulink result might be different.
+Running the Simulink might take more than 1 minute, so please wait for a while.
+
+
 # ball-and-beam-project
 EE222/ME237 Nonlinear Systems, Spring 2022, Starter code for the course project.
 
