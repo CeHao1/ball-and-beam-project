@@ -1,5 +1,6 @@
 close all
 clear all
+clc;
 
 %% General Settings.
 % Initial state.

@@ -5,10 +5,10 @@ function score = get_controller_score(ts, ps, thetas, ref_ps, us)
             length(ts) ~= length(us)
         error('Wrong data size.');
     end
-    if ts(end) < 90
-        score = inf;
-        return
-    end            
+%     if ts(end) < 90
+%         score = inf;
+%         return
+%     end            
     dt = ts(2) - ts(1);
     tracking_error = sum((ps - ref_ps).^2) * dt / (ts(end) - ts(1));
     control_cost = sum(us.^2) * dt / (ts(end) - ts(1));
