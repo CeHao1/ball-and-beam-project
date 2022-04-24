@@ -1,6 +1,3 @@
-%% SETUP_BALL_BEAM
-% Sets the necessary parameters to run the Ball and Beam experiment.
-%
 clear;
 % Hardware setup_type: 1: VoltPAQ+Q2 2: UPM_1503+Q4
 setup_type = 1;
