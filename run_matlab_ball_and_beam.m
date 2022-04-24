@@ -2,6 +2,8 @@ close all
 clear all
 clc;
 
+tic;
+
 %% General Settings.
 % Initial state.
 x0 = [-0.19; 0.00; 0; 0];
@@ -82,6 +84,7 @@ thetas = xs(3, :);
 % Evaluate the score of the controller.
 score = get_controller_score(ts, ps, thetas, ref_ps, us);
 
+toc
 %% Plots
 % Plot states.
 plot_states(ts, xs, ref_ps, ref_vs, theta_ds);

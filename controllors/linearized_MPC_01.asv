@@ -37,42 +37,29 @@ function [V_servo, theta_d] = linearized_MPC_01(x, ref, Np, dt)
     x_init = x_ref;
 
     %% new A, D
-    A_combined1 = zeros(Nv_s, Nv_s);
-    A_combined2 = zeros(Nv_s, Nv_c);
-    D_combined = zeros(Nv_s, 1);
+    A_combined1 = zeros(Nv);
 
-    A_combined1(1:Ns, 1:Ns) = I;
-    D_combined(1:Ns, 1) = x0;
-    ToNs = 1:Ns;
-    ToNc = 1:Nc;
-    for i=2:Np+1
-        A_combined1((i-1)*Ns+ ToNs, (i-1)*Ns+ ToNs)=I;
-        A_combined1((i-1)*Ns+ ToNs, (i-2)*Ns+ ToNs)= -Ad;
-        A_combined2((i-1)*Ns+ ToNs, (i-2)*Nc+ ToNc)= -Bd;
-    end
-    A_qp = [A_combined1, A_combined2];
-    D_qp = D_combined;
     %% formulate equality
-%     A_combined1 = repmat({zeros(Ns,Ns)}, Np+1, Np+1);
-%     A_combined2 = repmat({zeros(Ns,Nc)}, Np+1, Np);
-%     D_combined = repmat({zeros(Ns,1)}, Np+1, 1);
-% 
-%     A_combined1{1,1} = I;
-%     D_combined{1,1} = x0;
-%     for i=2:Np+1
-%         A_combined1{i,i} = I;
-%         A_combined1{i,i-1} = -Ad;
-%         A_combined2{i,i-1} = -Bd;
-%     end
+    A_combined1 = repmat({zeros(Ns,Ns)}, Np+1, Np+1);
+    A_combined2 = repmat({zeros(Ns,Nc)}, Np+1, Np);
+    D_combined = repmat({zeros(Ns,1)}, Np+1, 1);
+
+    A_combined1{1,1} = I;
+    D_combined{1,1} = x0;
+    for i=2:Np+1
+        A_combined1{i,i} = I;
+        A_combined1{i,i-1} = -Ad;
+        A_combined2{i,i-1} = -Bd;
+    end
 
 %     A_combined = [A_combined1, A_combined2];
 %     A_qp = cell2mat(A_combined);
 
-%     coder.extrinsic('cell2mat');
-%     A_qp1 = cell2mat(A_combined1);
-%     A_qp2 = cell2mat(A_combined2);
-%     A_qp = [A_qp1, A_qp2];
-%     D_qp = cell2mat(D_combined);
+    coder.extrinsic('cell2mat');
+    A_qp1 = cell2mat(A_combined1);
+    A_qp2 = cell2mat(A_combined2);
+    A_qp = [A_qp1, A_qp2];
+    D_qp = cell2mat(D_combined);
 
     %% formulate inequality
     x_up = 1000*ones(Nv, 1);
@@ -121,17 +108,14 @@ function [V_servo, theta_d] = linearized_MPC_01(x, ref, Np, dt)
 
    %% solver quadprog
 %     coder.extrinsic('quadprog');
-
+%     options = optimset('display', 'off');
     options = optimoptions('quadprog', 'Algorithm', 'active-set');
-%     options = optimoptions('quadprog', 'Algorithm', 'interior-point-convex');
-    options.Display = 'off';
-    
-%     options.MaxIterations = 11;
-%     options.StepTolerance = 1e-4;
+        
 %     [xout_raw, fval, exitflag] = quadprog(H,f, A_inequ, b_inequ, A_qp, D_qp, [],[],[],options);
-%     tic
-    [xout, fval, exitflag] = quadprog(H,f, [],[], A_qp, D_qp, x_dn,x_up, x_init, options);
-%     toc
+    [xout_raw, fval, exitflag] = quadprog(H,f, [],[], A_qp, D_qp, x_dn,x_up, x_init, options);
+    xout = zeros(Nv, 1);
+    xout = xout_raw;
+
 % 
 % options = optimoptions('quadprog', 'Display', 'iter');
 

@@ -10,9 +10,12 @@ classdef studentControllerInterface < matlab.System
         theta_prev = 0;
         theta_dot_prev = 0;
 
-        % dt
-        dt = 0.01;
-        H = 20; % horizon
+        V_servo_prev = 0;
+
+        % MPC values
+        dt = 0.02;
+        H = 50; % horizon
+        last_update_time = -1;
 
         % wave pattern, 0-square, 1-sine
         wave_pattern = 0; 
@@ -35,6 +38,10 @@ classdef studentControllerInterface < matlab.System
         %   theta: servo motor angle provided by the encoder of the motor (rad)
         % Output:
         %   V_servo: voltage to the servo input.
+
+        if ((t*10-floor(t*10)) < 0.15)
+            fprintf("time %f \n", t);
+        end
            %% observer, calculate the x(2)=z_dot, x(4)=theta_dot
             t_prev = obj.t_prev;
             p_prev = obj.p_prev;
@@ -87,19 +94,24 @@ classdef studentControllerInterface < matlab.System
 
             x = [p_ball, v_ball, theta, theta_dot]';
             ref = pred_ref;
-%             if (t > 4.0)
-%                     a = 1;
-%             end
+
             %% controller
 
             % (1) default
 %             [V_servo, theta_d] = default_controllor(x, ref);
 
             % (2) Feedback LQR
-            [V_servo, theta_d] = LQR_01(x, ref, obj.dt);
+%             [V_servo, theta_d] = LQR_01(x, ref, obj.dt);
 
-            % (3) MPC, todo
-%             [V_servo, theta_d] = linearized_MPC_01(x, ref, obj.H, obj.dt);
+            % (3) MPC, we change change the control frequency
+            if ((t - obj.last_update_time)>0.005)
+                [V_servo, theta_d] = linearized_MPC_01(x, ref, obj.H, obj.dt);
+                obj.last_update_time = t;
+%                 fprintf("use mpc");
+            else
+                V_servo = obj.V_servo_prev;
+                theta_d = obj.theta_prev;
+            end
             
             % Update class properties if necessary.
             obj.t_prev = t;
@@ -108,6 +120,8 @@ classdef studentControllerInterface < matlab.System
             obj.theta_prev = theta;
             obj.theta_dot_prev = theta_dot;
             obj.theta_d = theta_d;
+
+            obj.V_servo_prev = V_servo;
         end
     end
     
