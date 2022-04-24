@@ -87,16 +87,19 @@ classdef studentControllerInterface < matlab.System
 
             x = [p_ball, v_ball, theta, theta_dot]';
             ref = pred_ref;
-
+            if (t > 4.0)
+                    a = 1;
+            end
             %% controller
 
             % (1) default
 %             [V_servo, theta_d] = default_controllor(x, ref);
 
             % (2) Feedback LQR
-            [V_servo, theta_d] = LQR_01(x, ref, obj.dt);
+%             [V_servo, theta_d] = LQR_01(x, ref, obj.dt);
 
             % (3) MPC, todo
+            [V_servo, theta_d] = linearized_MPC_01(x, ref, obj.H, obj.dt);
             
             % Update class properties if necessary.
             obj.t_prev = t;
