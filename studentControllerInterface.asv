@@ -13,13 +13,13 @@ classdef studentControllerInterface < matlab.System
         V_servo_prev = 0;
 
         % MPC values
-        dt = 0.01;
+        dt = 0.02;
         H = 50; % horizon
         last_update_time = -1;
 
         % PID values
         integrated_position_error = 0;
-        integrated_theta_error = 0;
+        integrated_
 
         % wave pattern, 0-square, 1-sine
         wave_pattern = 0; 
@@ -43,9 +43,9 @@ classdef studentControllerInterface < matlab.System
         % Output:
         %   V_servo: voltage to the servo input.
 
-%         if ((t*100-floor(t*100)) < 0.15)
-%             fprintf("time %f \n", t);
-%         end
+        if ((t*10-floor(t*10)) < 0.15)
+            fprintf("time %f \n", t);
+        end
            %% observer, calculate the x(2)=z_dot, x(4)=theta_dot
             t_prev = obj.t_prev;
             p_prev = obj.p_prev;
@@ -108,19 +108,14 @@ classdef studentControllerInterface < matlab.System
 %             [V_servo, theta_d] = LQR_01(x, ref, obj.dt);
 
             % (3) MPC, we change change the control frequency
-%             if ((t - obj.last_update_time)>0.005)
-%                 [V_servo, theta_d] = linearized_MPC_01(x, ref, obj.H, obj.dt);
-%                 obj.last_update_time = t;
-% %                 fprintf("use mpc");
-%             else
-%                 V_servo = obj.V_servo_prev;
-%                 theta_d = obj.theta_prev;
-%             end
-
-            % (4) PID, two chains
-            predict = 1;
-            [V_servo, theta_d, obj.integrated_position_error, obj.integrated_theta_error] =  ...
-                PID_01(x, ref, obj.dt, obj.integrated_position_error, obj.integrated_theta_error, predict);
+            if ((t - obj.last_update_time)>0.005)
+                [V_servo, theta_d] = linearized_MPC_01(x, ref, obj.H, obj.dt);
+                obj.last_update_time = t;
+%                 fprintf("use mpc");
+            else
+                V_servo = obj.V_servo_prev;
+                theta_d = obj.theta_prev;
+            end
             
             % Update class properties if necessary.
             obj.t_prev = t;

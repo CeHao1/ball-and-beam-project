@@ -17,7 +17,7 @@ ode_func = @ode45;
 % print log for each timestep if true.
 verbose = false;
 % plot animation if true.
-plot_animation = true;
+plot_animation = false;
 % save animation to video if true.
 save_video = false;
 
