@@ -62,43 +62,46 @@ classdef studentControllerInterface < matlab.System
                 v_ball = 0;
                 theta_dot = 0;
             end
-
+            
+            x = [p_ball, v_ball, theta, theta_dot]';
             %% Sample Controller: Simple Proportional Controller
             % Extract reference trajectory at the current timestep.
             [p_ball_ref, v_ball_ref, a_ball_ref] = get_ref_traj(t);
 
-             %% judege the pattern of reference
-             if (a_ball_ref == 0) 
-                 if (obj.wave_pattern == 1) % if the last pattern is sine wave
-                    wave_pattern = obj.wave_pattern;
-                    A = obj.A;
-                    omega = obj.omega;
-                 else % use square wave instead
-                    wave_pattern = 0; % square
-                    A = p_ball_ref;
-                    omega = 0;
+             
+            %% judege the pattern of reference
+            use_prediction = false;
+            if (use_prediction)
+                if (a_ball_ref == 0) 
+                     if (obj.wave_pattern == 1) % if the last pattern is sine wave
+                        wave_pattern = obj.wave_pattern;
+                        A = obj.A;
+                        omega = obj.omega;
+                     else % use square wave instead
+                        wave_pattern = 0; % square
+                        A = p_ball_ref;
+                        omega = 0;
+                     end
+                 else
+                     wave_pattern = 1;
+                     omega = sqrt(-a_ball_ref / p_ball_ref);
+                     A = p_ball_ref / sin(omega * t);
                  end
-             else
-                 wave_pattern = 1;
-                 omega = sqrt(-a_ball_ref / p_ball_ref);
-                 A = p_ball_ref / sin(omega * t);
-             end
-
-             obj.wave_pattern = wave_pattern;
-             obj.A = A;
-             obj.omega = omega;
-
-            % predict reference in the horizon
-            pred_ref = [];
-            for i = 0:obj.H
-                t_pred = t + i*obj.dt;
-                [p_pred, v_pred, a_pred] = get_pred_traj(t_pred, wave_pattern, A, omega);
-                pred_ref = [pred_ref, [p_pred, v_pred]'];
+    
+                 obj.wave_pattern = wave_pattern;
+                 obj.A = A;
+                 obj.omega = omega;
+    
+                % predict reference in the horizon
+                pred_ref = [];
+                for i = 0:obj.H
+                    t_pred = t + i*obj.dt;
+                    [p_pred, v_pred, a_pred] = get_pred_traj(t_pred, wave_pattern, A, omega);
+                    pred_ref = [pred_ref, [p_pred, v_pred]'];
+                end
+    
+                ref = pred_ref;
             end
-
-            x = [p_ball, v_ball, theta, theta_dot]';
-            ref = pred_ref;
-
             %% controller
 
             % (1) default
@@ -108,6 +111,7 @@ classdef studentControllerInterface < matlab.System
 %             [V_servo, theta_d] = LQR_01(x, ref, obj.dt);
 
             % (3) MPC, we change change the control frequency
+            % must use predicted trajectory
 %             if ((t - obj.last_update_time)>0.005)
 %                 [V_servo, theta_d] = linearized_MPC_01(x, ref, obj.H, obj.dt);
 %                 obj.last_update_time = t;
@@ -119,6 +123,7 @@ classdef studentControllerInterface < matlab.System
 
             % (4) PID, two chains
             predict = 1;
+            ref = [p_ball_ref, v_ball_ref]';
             [V_servo, theta_d, obj.integrated_position_error, obj.integrated_theta_error] =  ...
                 PID_01(x, ref, obj.dt, obj.integrated_position_error, obj.integrated_theta_error, predict);
             
