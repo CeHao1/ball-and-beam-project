@@ -13,7 +13,7 @@ classdef studentControllerInterface < matlab.System
         V_servo_prev = 0;
 
         % MPC values
-        dt = 0.01;
+        dt = 0.02;
         H = 50; % horizon
         last_update_time = -1;
 
@@ -70,7 +70,7 @@ classdef studentControllerInterface < matlab.System
 
              
             %% judege the pattern of reference
-            use_prediction = false;
+            use_prediction = true;
             if (use_prediction)
                 if (a_ball_ref == 0) 
                      if (obj.wave_pattern == 1) % if the last pattern is sine wave
@@ -108,24 +108,25 @@ classdef studentControllerInterface < matlab.System
 %             [V_servo, theta_d] = default_controllor(x, ref);
 
             % (2) Feedback LQR
+%             ref = [p_ball_ref, v_ball_ref]';
 %             [V_servo, theta_d] = LQR_01(x, ref, obj.dt);
 
             % (3) MPC, we change change the control frequency
-            % must use predicted trajectory
+%             must use predicted trajectory
 %             if ((t - obj.last_update_time)>0.005)
-%                 [V_servo, theta_d] = linearized_MPC_01(x, ref, obj.H, obj.dt);
+                [V_servo, theta_d] = linearized_MPC_01(x, ref, obj.H, obj.dt);
 %                 obj.last_update_time = t;
-% %                 fprintf("use mpc");
+%                 fprintf("use mpc");
 %             else
 %                 V_servo = obj.V_servo_prev;
 %                 theta_d = obj.theta_prev;
 %             end
 
             % (4) PID, two chains
-            predict = 1;
-            ref = [p_ball_ref, v_ball_ref]';
-            [V_servo, theta_d, obj.integrated_position_error, obj.integrated_theta_error] =  ...
-                PID_01(x, ref, obj.dt, obj.integrated_position_error, obj.integrated_theta_error, predict);
+%             predict = 1;
+%             ref = [p_ball_ref, v_ball_ref]';
+%             [V_servo, theta_d, obj.integrated_position_error, obj.integrated_theta_error] =  ...
+%                 PID_01(x, ref, obj.dt, obj.integrated_position_error, obj.integrated_theta_error, predict);
             
             % Update class properties if necessary.
             obj.t_prev = t;
